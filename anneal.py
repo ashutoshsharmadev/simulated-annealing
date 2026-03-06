@@ -5,23 +5,26 @@ import time
 N = 30
 random.seed(69)
 # Use native Python lists for better speed in small matrices
-matrix = [[random.randint(0,1) for _ in range(N)] for _ in range(N)]
+matrix = [[random.randint(0, 1) for _ in range(N)] for _ in range(N)]
 
 def score(mat):
     # Fast counting with list comprehension
     return sum(mat[i][j] for i in range(N) for j in range(N))
 
+
+positions = [(i,j) for i in range(N) for j in range(N)]
 def neighbour(mat):
     # Fast shallow copy and flip
     new = [row[:] for row in mat]  # Faster than deepcopy for 2D lists
-    i = random.randint(0, N-1)
-    j = random.randint(0, N-1)
-    new[i][j] = 1 - new[i][j]
+    flips = random.randint(1,3)
+    for _ in range(flips):
+        i,j = random.choice(positions)
+        new[i][j] = 1 - new[i][j]
     return new
 
 # Optimized parameters for speed
 start_time = time.time()
-time_limit = 2.0  # 2 second time limit
+time_limit = 5.0  # 2 second time limit
 T = 10.0
 T_min = 0.001
 alpha = 0.99
@@ -31,8 +34,10 @@ current_score = score(current)
 best = [row[:] for row in current]
 best_score = current_score
 
+max_achieved = False
+
 iterations = 0
-while time.time() - start_time < time_limit:
+while time.time() - start_time < time_limit and max_achieved == False:
     # More iterations per temperature for better exploration
     for _ in range(100):
         candidate = neighbour(current)
@@ -50,6 +55,11 @@ while time.time() - start_time < time_limit:
                 best_score = current_score
         
         iterations += 1
+        
+        # MAX score
+        if(best_score >= 900):
+            max_achieved = True
+            break
         
         # Time check to avoid TLE
         if time.time() - start_time > time_limit:
